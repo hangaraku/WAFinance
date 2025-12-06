@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'Profile & Settings',
+    'joined' => 'Joined',
+    'categories' => 'Categories',
+    'categories_description' => 'Manage income and expense categories',
+    'accounts' => 'Accounts',
+    'accounts_description' => 'Manage your financial accounts',
+    'budgets' => 'Budgets',
+    'budgets_description' => 'Set monthly budgets',
+    'goals' => 'Goals',
+    'goals_description' => 'Manage financial goals',
+    'app_settings' => 'App Settings',
+    'app_settings_description' => 'Theme, notifications, and more',
+    'about' => 'About',
+    'about_description' => 'App version and information',
+    'logout' => 'Logout',
+    'logout_description' => 'Logout from application',
+    'language' => 'Language',
+    'language_description' => 'Choose application language',
+    'select_language' => 'Select Language',
+    'english' => 'English',
+    'indonesian' => 'Bahasa Indonesia',
+];
