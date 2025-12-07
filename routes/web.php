@@ -83,6 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::get('/settings/account', [App\Http\Controllers\SettingsController::class, 'account'])->name('settings.account');
     Route::post('/settings/account', [App\Http\Controllers\SettingsController::class, 'updateAccount'])->name('settings.account.update');
+    Route::delete('/settings/account', [App\Http\Controllers\SettingsController::class, 'deleteAccount'])->name('settings.account.delete');
     Route::post('/settings/whatsapp', [App\Http\Controllers\SettingsController::class, 'updateWhatsApp'])->name('settings.whatsapp.update');
     Route::delete('/settings/whatsapp', [App\Http\Controllers\SettingsController::class, 'removeWhatsApp'])->name('settings.whatsapp.remove');
     

@@ -114,24 +114,49 @@ class SettingsController extends Controller
     }
 
     /**
-     * Normalize phone number to E.164 format with Indonesian defaults.
+     * Delete the authenticated user's account.
+     */
+    public function deleteAccount(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Log out the user first
+        Auth::logout();
+        
+        // Delete the user account
+        $user->delete();
+        
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Account deleted successfully',
+            ]);
+        }
+
+        return redirect('/')->with('success', 'Account deleted successfully');
+    }
+
+    /**
+     * Normalize phone number to standard format: 62xxxxxxxxxx (no + prefix)
+     * Handles:
+     *   +6281357737545 => 6281357737545
+     *   081357737545 => 6281357737545
+     *   6281357737545 => 6281357737545
      */
     protected function normalizePhoneNumber(string $phone): string
     {
-        // Remove all non-numeric characters except +
-        $normalized = preg_replace('/[^\d+]/', '', $phone);
+        // Remove all non-numeric characters
+        $normalized = preg_replace('/[^\d]/', '', $phone);
         
-        // Ensure it starts with country code
-        if (!str_starts_with($normalized, '+')) {
-            // Assume Indonesian number if no country code
-            if (str_starts_with($normalized, '0')) {
-                $normalized = '+62' . substr($normalized, 1);
-            } elseif (str_starts_with($normalized, '62')) {
-                $normalized = '+' . $normalized;
-            } else {
-                $normalized = '+62' . $normalized;
-            }
+        // Handle leading 0 (Indonesian format: 081xxx => 628xxx)
+        if (str_starts_with($normalized, '0')) {
+            $normalized = '62' . substr($normalized, 1);
         }
+        // If doesn't start with 62, assume it's a number without country code
+        elseif (!str_starts_with($normalized, '62')) {
+            $normalized = '62' . $normalized;
+        }
+        // Already in 62xxx format, leave as is
 
         return $normalized;
     }

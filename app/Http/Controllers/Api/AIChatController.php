@@ -219,19 +219,27 @@ class AIChatController extends Controller
     }
 
     /**
-     * Normalize phone number to standard format (e.g., 628xxx)
+     * Normalize phone number to standard format: 62xxxxxxxxxx (no + prefix)
+     * Handles:
+     *   +6281357737545 => 6281357737545
+     *   081357737545 => 6281357737545
+     *   6281357737545 => 6281357737545
      */
     protected function normalizePhoneNumber(string $phone): string
     {
         // Remove all non-numeric characters
-        $phone = preg_replace('/[^0-9]/', '', $phone);
+        $phone = preg_replace('/[^\d]/', '', $phone);
 
-        // Handle Indonesian numbers: convert 08xx to 628xx
+        // Handle leading 0 (Indonesian format: 081xxx => 628xxx)
         if (str_starts_with($phone, '0')) {
             $phone = '62' . substr($phone, 1);
         }
+        // If doesn't start with 62, assume it's a number without country code
+        elseif (!str_starts_with($phone, '62')) {
+            $phone = '62' . $phone;
+        }
+        // Already in 62xxx format, leave as is
 
-        // Remove leading + if present (already stripped by preg_replace)
         return $phone;
     }
 
