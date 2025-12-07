@@ -10,6 +10,7 @@ Route::get('/user', function (Request $request) {
 // AI API routes for external integrations (WhatsApp, etc.)
 Route::prefix('ai')->group(function () {
     Route::post('/chat', [App\Http\Controllers\Api\AIChatController::class, 'chat']);
+    Route::post('/lookup-user', [App\Http\Controllers\Api\AIChatController::class, 'lookupUser']);
     Route::get('/health', [App\Http\Controllers\Api\AIChatController::class, 'health']);
     Route::get('/models', [App\Http\Controllers\Api\AIChatController::class, 'getModels']);
     Route::get('/financial-summary', [App\Http\Controllers\Api\AIChatController::class, 'getFinancialSummary']);

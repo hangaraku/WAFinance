@@ -1,0 +1,328 @@
+{
+  "name": "Cashfloo WhatsApp AI Chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "messages-upsert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "webhook-receiver",
+      "name": "Receive WhatsApp Message",
+      "webhookId": "05c4adb1-4564-437f-98bd-06977a63f2c1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract sender phone and message from Evolution API payload\nconst data = $input.first().json;\n\n// Evolution API sends data in body.data structure\nconst messageData = data.data || data;\nconst key = messageData.key || {};\nconst message = messageData.message || {};\n\n// Get sender phone (remove @s.whatsapp.net suffix)\nlet senderPhone = key.remoteJid || '';\nsenderPhone = senderPhone.replace('@s.whatsapp.net', '').replace('@g.us', '');\n\n// Get message text (handle different message types)\nlet messageText = '';\nif (message.conversation) {\n  messageText = message.conversation;\n} else if (message.extendedTextMessage) {\n  messageText = message.extendedTextMessage.text;\n} else if (message.imageMessage?.caption) {\n  messageText = message.imageMessage.caption;\n} else if (message.videoMessage?.caption) {\n  messageText = message.videoMessage.caption;\n}\n\n// Check if this is an outgoing message (from us) - skip processing\nconst fromMe = key.fromMe || false;\n\n// Check if message is from a group\nconst isGroup = senderPhone.includes('-') || key.remoteJid?.includes('@g.us');\n\nreturn {\n  senderPhone,\n  messageText,\n  fromMe,\n  isGroup,\n  rawData: data\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "id": "extract-message",
+      "name": "Extract Message Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-valid-message",
+              "leftValue": "={{ $json.messageText }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "condition-not-from-me",
+              "leftValue": "={{ $json.fromMe }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-not-group",
+              "leftValue": "={{ $json.isGroup }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0],
+      "id": "filter-valid-messages",
+      "name": "Is Valid Message?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CASHFLOO_API_URL }}/api/ai/lookup-user",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "whatsapp_number",
+              "value": "={{ $('Extract Message Data').item.json.senderPhone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [660, -100],
+      "id": "lookup-user",
+      "name": "Lookup User by Phone"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-user-found",
+              "leftValue": "={{ $json.found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [880, -100],
+      "id": "check-user-registered",
+      "name": "User Registered?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CASHFLOO_API_URL }}/api/ai/chat",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $('Lookup User by Phone').item.json.user_id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('Extract Message Data').item.json.messageText }}"
+            },
+            {
+              "name": "platform",
+              "value": "whatsapp"
+            },
+            {
+              "name": "timezone",
+              "value": "Asia/Jakarta"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [1100, -200],
+      "id": "call-ai-chat",
+      "name": "Call AI Chat API"
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "Cashfloo",
+        "remoteJid": "={{ $('Extract Message Data').item.json.senderPhone }}@s.whatsapp.net",
+        "messageType": "text",
+        "text": "={{ $json.response || $json.message || 'Maaf, terjadi kesalahan saat memproses pesan Anda.' }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api-english.evolutionApi",
+      "typeVersion": 1,
+      "position": [1320, -200],
+      "id": "send-ai-response",
+      "name": "Send AI Response",
+      "credentials": {
+        "evolutionApi": {
+          "id": "skpaAD9xrMyAGqMQ",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "Cashfloo",
+        "remoteJid": "={{ $('Extract Message Data').item.json.senderPhone }}@s.whatsapp.net",
+        "messageType": "text",
+        "text": "Maaf, anda belum mendaftarkan nomor WhatsApp ke layanan kami.\n\nSilakan daftar terlebih dahulu di website Cashfloo untuk menggunakan fitur AI Chat.",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api-english.evolutionApi",
+      "typeVersion": 1,
+      "position": [1100, 0],
+      "id": "send-not-registered",
+      "name": "Send Not Registered Message",
+      "credentials": {
+        "evolutionApi": {
+          "id": "skpaAD9xrMyAGqMQ",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [660, 100],
+      "id": "skip-invalid",
+      "name": "Skip Invalid Message"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receive WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "Is Valid Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid Message?": {
+      "main": [
+        [
+          {
+            "node": "Lookup User by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Invalid Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup User by Phone": {
+      "main": [
+        [
+          {
+            "node": "User Registered?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Registered?": {
+      "main": [
+        [
+          {
+            "node": "Call AI Chat API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Not Registered Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call AI Chat API": {
+      "main": [
+        [
+          {
+            "node": "Send AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "142ba570-18be-40a2-969d-f534c95bb4a9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f95de449f81aab568b76d65824fda9ad2a465d9880e86bb707dd1563cb7749d8"
+  },
+  "id": "TBqi4mZphhTDZU6f",
+  "tags": []
+}

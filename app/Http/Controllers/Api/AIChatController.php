@@ -189,6 +189,53 @@ class AIChatController extends Controller
     }
 
     /**
+     * Lookup user by WhatsApp number
+     * Used by n8n workflow to check if sender is registered
+     * 
+     * Request: { "whatsapp_number": "628123456789" }
+     * Response: { "found": true, "user_id": 1, "name": "John" } or { "found": false }
+     */
+    public function lookupUser(Request $request)
+    {
+        $request->validate([
+            'whatsapp_number' => 'required|string'
+        ]);
+
+        $phone = $this->normalizePhoneNumber($request->input('whatsapp_number'));
+        
+        $user = User::where('whatsapp_number', $phone)->first();
+
+        if ($user) {
+            return response()->json([
+                'found' => true,
+                'user_id' => $user->id,
+                'name' => $user->name,
+            ]);
+        }
+
+        return response()->json([
+            'found' => false,
+        ]);
+    }
+
+    /**
+     * Normalize phone number to standard format (e.g., 628xxx)
+     */
+    protected function normalizePhoneNumber(string $phone): string
+    {
+        // Remove all non-numeric characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // Handle Indonesian numbers: convert 08xx to 628xx
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
+        }
+
+        // Remove leading + if present (already stripped by preg_replace)
+        return $phone;
+    }
+
+    /**
      * Webhook endpoint for WhatsApp integration
      * This will be used when integrating with Evolution API
      */
