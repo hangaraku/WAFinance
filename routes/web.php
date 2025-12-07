@@ -91,6 +91,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/ai/chat', [App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');
 });
 
+// Admin routes (password protected)
+Route::prefix('admin')->group(function () {
+    Route::get('/login', [App\Http\Controllers\AdminController::class, 'showLogin'])->name('admin.login');
+    Route::post('/login', [App\Http\Controllers\AdminController::class, 'login'])->name('admin.login.post');
+    Route::post('/logout', [App\Http\Controllers\AdminController::class, 'logout'])->name('admin.logout');
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/system-prompt', [App\Http\Controllers\AdminController::class, 'systemPrompt'])->name('admin.system-prompt');
+    Route::post('/system-prompt', [App\Http\Controllers\AdminController::class, 'updateSystemPrompt'])->name('admin.system-prompt.update');
+});
+
 // Deploy routes (for development)
 Route::get('/deploy', [App\Http\Controllers\DeployController::class, 'showPullPage'])->name('deploy.pull');
 Route::post('/deploy/pull', [App\Http\Controllers\DeployController::class, 'pull'])->name('deploy.execute');
