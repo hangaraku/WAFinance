@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Custom styles for BaikFinansial */
+/* Custom styles for Cashfloo */
 @layer utilities {
   .btn-primary {
     @apply bg-orange-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200;

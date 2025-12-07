@@ -1,5 +1,5 @@
 {{-- 
-    BaikFinansial Components Index
+    Cashfloo Components Index
     
     Available Components:
     

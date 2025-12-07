@@ -398,7 +398,7 @@ class TransactionController extends Controller
         
         $transactions = Transaction::where('user_id', $user->id)
             ->where('transaction_date', $date)
-            ->with('category')
+            ->with(['category', 'account', 'transferAccount'])
             ->orderBy('transaction_time', 'desc')
             ->get();
         

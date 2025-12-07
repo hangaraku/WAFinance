@@ -94,11 +94,11 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center space-x-2">
                                     @if($transaction->category)
-                                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{{ $transaction->category->name }}</span>
+                                        <span class="text-xs {{ $transaction->type === 'income' ? 'text-green-700 bg-green-100' : ($transaction->type === 'expense' ? 'text-red-700 bg-red-100' : 'text-gray-500 bg-gray-200') }} px-2 py-1 rounded-full">{{ $transaction->category->name }}</span>
                                     @elseif($transaction->type === 'transfer')
                                         <span class="text-xs text-blue-500 bg-blue-100 px-2 py-1 rounded-full">{{ __('transactions.transfer') }}</span>
                                     @else
-                                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">{{ __('transactions.no_category') }}</span>
+                                        <span class="text-xs {{ $transaction->type === 'income' ? 'text-green-700 bg-green-100' : ($transaction->type === 'expense' ? 'text-red-700 bg-red-100' : 'text-gray-500 bg-gray-200') }} px-2 py-1 rounded-full">{{ __('transactions.no_category') }}</span>
                                     @endif
                                     
                                     <a href="{{ route('transactions.edit', $transaction) }}" class="text-sm font-medium text-gray-900 whitespace-normal break-words hover:text-orange-600 transition-colors">
@@ -111,6 +111,10 @@
                                         <div>
                                             {{ __('transactions.from') }}: {{ $transaction->account->name ?? __('transactions.unknown_account') }} → {{ __('transactions.to') }}: {{ $transaction->transferAccount->name ?? __('transactions.unknown_account') }}
                                         </div>
+                                    </div>
+                                @else
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        {{ $transaction->account->name ?? __('transactions.unknown_account') }}
                                     </div>
                                 @endif
                                 
@@ -346,7 +350,8 @@
                                             </div>
                                             <div>
                                                 <p class="text-sm font-medium text-gray-900">{{ $transaction->description }}</p>
-                                                <p class="text-xs text-gray-500">{{ $transaction->category->name ?? 'No Category' }}</p>
+                                                <p class="text-xs {{ $transaction->type === 'income' ? 'text-green-700' : ($transaction->type === 'expense' ? 'text-red-700' : 'text-gray-500') }}">{{ $transaction->category->name ?? __('transactions.no_category') }}</p>
+                                                <p class="text-xs text-gray-400">{{ $transaction->account->name ?? __('transactions.unknown_account') }}</p>
                                             </div>
                                         </div>
                                         <div class="text-right">
@@ -462,7 +467,7 @@ function showDayDetails(date, income, expense, transactionCount) {
     // Populate transactions list
     const transactionsContainer = document.getElementById('modal-transactions');
     if (transactions.length > 0) {
-        transactionsContainer.innerHTML = transactions.map(transaction => `
+                        transactionsContainer.innerHTML = transactions.map(transaction => `
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center ${transaction.type === 'income' ? 'bg-green-100' : (transaction.type === 'expense' ? 'bg-red-100' : 'bg-blue-100')}">
@@ -478,6 +483,7 @@ function showDayDetails(date, income, expense, transactionCount) {
                     <div>
                         <p class="text-sm font-medium text-gray-900">${transaction.description}</p>
                         <p class="text-xs text-gray-500">${transaction.category ? transaction.category.name : 'No Category'}</p>
+                        <p class="text-xs text-gray-400">${transaction.account ? transaction.account.name : (transaction.account_name ? transaction.account_name : 'Unknown Account')}</p>
                     </div>
                 </div>
                 <div class="text-right">

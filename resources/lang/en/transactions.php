@@ -57,5 +57,5 @@ return [
     'save_transaction' => 'Save Transaction',
     'view_all' => 'View All',
     'more' => 'more',
-    'no_weekly_data' => 'No weekly data available',
+    'no_weekly_data' => 'No weekly data',
 ];

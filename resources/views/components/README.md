@@ -1,6 +1,6 @@
-# BaikFinansial Components
+# Cashfloo Components
 
-This directory contains reusable Blade components for the BaikFinansial application. All components are designed to be mobile-first and follow consistent design patterns.
+This directory contains reusable Blade components for the Cashfloo application. All components are designed to be mobile-first and follow consistent design patterns.
 
 ## Available Components
 

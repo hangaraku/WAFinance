@@ -14,7 +14,7 @@
                 <div class="flex items-center">
                     <a href="{{ route('welcome') }}" class="flex items-center">
                         <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">BF</span>
+                            <span class="text-white font-bold text-lg">CF</span>
                         </div>
                         <h1 class="ml-3 text-xl font-bold text-gray-900">{{ __('common.app_name') }}</h1>
                     </a>

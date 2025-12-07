@@ -13,7 +13,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                        <span class="text-white font-bold text-lg">BF</span>
+                        <span class="text-white font-bold text-lg">CF</span>
                     </div>
                     <h1 class="ml-3 text-xl font-bold text-gray-900">{{ __('common.app_name') }}</h1>
                 </div>
@@ -190,7 +190,7 @@
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center mb-4">
                         <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">BF</span>
+                            <span class="text-white font-bold text-lg">CF</span>
                         </div>
                         <h3 class="ml-3 text-xl font-bold">{{ __('common.app_name') }}</h3>
                     </div>

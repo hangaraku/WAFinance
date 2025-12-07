@@ -47,4 +47,6 @@ return [
     'view_all' => 'Lihat Semua',
     'more' => 'lagi',
     'no_weekly_data' => 'Tidak ada data mingguan',
+    'unknown_account' => 'Akun Tidak Diketahui',
+    'no_category' => 'Tanpa Kategori',
 ];

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'app_name' => 'BaikFinansial',
+    'app_name' => 'Cashfloo',
     'welcome' => 'Welcome',
     'login' => 'Login',
     'register' => 'Register',

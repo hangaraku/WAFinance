@@ -1,4 +1,4 @@
-# BaikFinansial
+# Cashfloo
 
 Aplikasi Manajemen Keuangan Pribadi yang mobile-first dan user-friendly.
 
@@ -40,8 +40,8 @@ Aplikasi Manajemen Keuangan Pribadi yang mobile-first dan user-friendly.
 
 1. **Clone repository**
 ```bash
-git clone https://github.com/haninggrk/BaikFinansial.git
-cd BaikFinansial
+git clone https://github.com/haninggrk/Cashfloo.git
+cd Cashfloo
 ```
 
 2. **Install dependencies**
@@ -163,7 +163,7 @@ php artisan make:controller ControllerName
 ### File Structure
 
 ```
-baikfinansial/
+cashfloo/
 ├── app/
 │   ├── Http/Controllers/
 │   │   └── AuthController.php
@@ -240,8 +240,8 @@ This project is licensed under the MIT License.
 ## 👥 Team
 
 - **Developer**: [Your Name]
-- **Project**: BaikFinansial
-- **Repository**: https://github.com/haninggrk/BaikFinansial
+- **Project**: Cashfloo
+- **Repository**: https://github.com/haninggrk/Cashfloo
 
 ## 📞 Support
 
@@ -249,4 +249,4 @@ Untuk support dan pertanyaan, silakan buat issue di GitHub repository.
 
 ---
 
-**BaikFinansial** - Manajemen Keuangan Pribadi yang Baik 💰✨
+**Cashfloo** - Manajemen Keuangan Pribadi yang Baik 💰✨
