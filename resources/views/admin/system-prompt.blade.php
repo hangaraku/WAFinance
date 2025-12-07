@@ -120,7 +120,7 @@
         <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h3 class="text-lg font-semibold text-blue-900 mb-3">Editing Tips</h3>
             <ul class="list-disc list-inside text-blue-800 space-y-2 text-sm">
-                <li>Use <code class="bg-blue-100 px-2 py-1 rounded">{{TIMESTAMP}}</code>, <code class="bg-blue-100 px-2 py-1 rounded">{{DATE_STR}}</code>, and <code class="bg-blue-100 px-2 py-1 rounded">{{TIME_STR}}</code> for dynamic values</li>
+                <li>Use <code class="bg-blue-100 px-2 py-1 rounded">@{{TIMESTAMP}}</code>, <code class="bg-blue-100 px-2 py-1 rounded">@{{DATE_STR}}</code>, and <code class="bg-blue-100 px-2 py-1 rounded">@{{TIME_STR}}</code> for dynamic values</li>
                 <li>Keep instructions clear and concise for better AI performance</li>
                 <li>Test changes by interacting with the AI chat after saving</li>
                 <li>Previous versions are automatically backed up in <code class="bg-blue-100 px-2 py-1 rounded">resources/ai/</code></li>
