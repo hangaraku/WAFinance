@@ -44,16 +44,17 @@ class TransactionSeeder extends Seeder
     private function createExpenseTransactions(User $user, $accounts, $categories)
     {
         $currentDate = Carbon::now();
-        
         for ($monthOffset = 0; $monthOffset < 3; $monthOffset++) {
             $month = $currentDate->copy()->subMonths($monthOffset);
             $daysInMonth = $month->daysInMonth;
-            
+            // If this is the current month, only seed up to today
+            $maxDay = $month->isSameMonth($currentDate) ? $currentDate->day : $daysInMonth;
+
             // Create 15-25 random expense transactions per month
             $numTransactions = rand(15, 25);
-            
+
             for ($i = 0; $i < $numTransactions; $i++) {
-                $day = rand(1, $daysInMonth);
+                $day = rand(1, max(1, $maxDay));
                 $amount = rand(50000, 500000);
                 $category = $categories->random();
                 $account = $accounts->random();
@@ -78,16 +79,17 @@ class TransactionSeeder extends Seeder
     private function createTransferTransactions(User $user, $accounts)
     {
         $currentDate = Carbon::now();
-        
         for ($monthOffset = 0; $monthOffset < 3; $monthOffset++) {
             $month = $currentDate->copy()->subMonths($monthOffset);
             $daysInMonth = $month->daysInMonth;
-            
+            // If this is the current month, only seed up to today
+            $maxDay = $month->isSameMonth($currentDate) ? $currentDate->day : $daysInMonth;
+
             // Create 3-8 transfer transactions per month
             $numTransfers = rand(3, 8);
-            
+
             for ($i = 0; $i < $numTransfers; $i++) {
-                $day = rand(1, $daysInMonth);
+                $day = rand(1, max(1, $maxDay));
                 $amount = rand(100000, 2000000);
                 
                 // Get two different accounts for transfer

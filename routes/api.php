@@ -17,3 +17,17 @@ Route::prefix('ai')->group(function () {
     Route::delete('/history', [App\Http\Controllers\Api\AIChatController::class, 'clearHistory']);
     Route::post('/whatsapp/webhook', [App\Http\Controllers\Api\AIChatController::class, 'whatsappWebhook']);
 });
+
+// Messaging webhook routes (WhatsApp, Telegram, etc. via n8n)
+Route::prefix('messaging')->group(function () {
+    Route::post('/webhook', [App\Http\Controllers\MessagingWebhookController::class, 'handle']);
+    Route::get('/webhook', [App\Http\Controllers\MessagingWebhookController::class, 'verify']);
+    Route::get('/status', [App\Http\Controllers\MessagingWebhookController::class, 'status']);
+});
+
+// Messaging webhook routes (n8n, Evolution API, WhatsApp)
+Route::prefix('messaging')->group(function () {
+    Route::post('/webhook', [App\Http\Controllers\MessagingWebhookController::class, 'handle']);
+    Route::get('/webhook', [App\Http\Controllers\MessagingWebhookController::class, 'verify']);
+    Route::get('/status', [App\Http\Controllers\MessagingWebhookController::class, 'status']);
+});

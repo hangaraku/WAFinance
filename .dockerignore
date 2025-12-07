@@ -1,0 +1,59 @@
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment files (except examples)
+.env
+.env.local
+.env.production
+.env.*.local
+!.env.example
+!.env.production.example
+
+# Laravel generated files
+/storage/*.key
+/storage/app/*
+!/storage/app/.gitignore
+!/storage/app/public/
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+# Build artifacts
+/public/build/
+/public/hot
+
+# IDE and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Testing
+.phpunit.result.cache
+.phpunit.cache
+coverage/
+
+# Logs
+*.log
+
+# Development files
+test-*.php
+oldprompt
+
+# Documentation (optional - remove if you want docs in image)
+*.md
+!README.md

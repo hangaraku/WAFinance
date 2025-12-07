@@ -9,6 +9,7 @@ use App\Models\Budget;
 use App\Services\AI\Orchestrator;
 use App\Services\AI\FunctionRouter;
 use App\Services\AI\Providers\GeminiProvider;
+use App\Services\AI\Providers\OpenAIProvider;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -17,18 +18,34 @@ class AIService
 {
     protected Orchestrator $orchestrator;
     protected FunctionRouter $router;
+    protected string $providerName;
 
     public function __construct()
     {
-        $apiKey = config('services.google.generative_api_key');
-        $model = config('services.google.model', 'gemini-2.0-flash-exp');
-
-        // Fallback if config is missing (for safety during refactor)
-        if (empty($apiKey)) {
-            Log::warning('Google API Key is missing in configuration.');
+        $this->providerName = config('services.ai.provider', 'openai');
+        
+        if ($this->providerName === 'openai') {
+            $apiKey = config('services.openai.api_key');
+            $model = config('services.openai.model', 'gpt-4o');
+            
+            if (empty($apiKey)) {
+                Log::warning('OpenAI API Key is missing in configuration.');
+            }
+            
+            $provider = new OpenAIProvider($apiKey ?? '', $model);
+            Log::info("AIService initialized with OpenAI provider", ['model' => $model]);
+        } else {
+            $apiKey = config('services.google.generative_api_key');
+            $model = config('services.google.model', 'gemini-2.0-flash-exp');
+            
+            if (empty($apiKey)) {
+                Log::warning('Google API Key is missing in configuration.');
+            }
+            
+            $provider = new GeminiProvider($apiKey ?? '', $model);
+            Log::info("AIService initialized with Gemini provider", ['model' => $model]);
         }
 
-        $provider = new GeminiProvider($apiKey ?? '', $model);
         $this->router = new FunctionRouter();
         $this->orchestrator = new Orchestrator($provider, $this->router);
     }
@@ -42,8 +59,8 @@ class AIService
             // Get conversation history
             $history = $this->getConversationHistory($user);
 
-            // Extract timestamp from context or use current time
-            $timestamp = $context['timestamp'] ?? now()->toISOString();
+            // Extract timestamp from context or use current time in local timezone
+            $timestamp = $context['timestamp'] ?? now()->format('Y-m-d\TH:i:s.uP');
 
             // Run Orchestrator
             // Orchestrator handles the loop of calling AI -> executing tools -> calling AI
@@ -57,7 +74,7 @@ class AIService
                 'response' => $responseContent,
                 'action' => null, // Actions are now handled internally by tools
                 'error' => false,
-                'model' => 'gemini-native',
+                'model' => $this->providerName === 'openai' ? 'openai-' . config('services.openai.model', 'gpt-4o') : 'gemini-' . config('services.google.model', '2.0-flash'),
                 'usage' => null,
                 'timestamp' => $timestamp
             ];
@@ -68,7 +85,7 @@ class AIService
                 'response' => "Maaf, saya mengalami kesalahan saat memproses permintaan Anda. Silakan coba lagi.",
                 'action' => null,
                 'error' => true,
-                'model' => 'gemini-native',
+                'model' => $this->providerName === 'openai' ? 'openai-' . config('services.openai.model', 'gpt-4o') : 'gemini-' . config('services.google.model', '2.0-flash'),
                 'usage' => null
             ];
         }
@@ -121,6 +138,12 @@ class AIService
     public function getAvailableModels(): array
     {
         return [
+            'gpt-5.1' => 'OpenAI GPT-5.1 (Latest, Extended Cache)',
+            'gpt-5' => 'OpenAI GPT-5 (Advanced Reasoning)',
+            'gpt-5-nano' => 'OpenAI GPT-5 Nano (Ultra Cost Effective)',
+            'gpt-5-mini' => 'OpenAI GPT-5 Mini (Balanced)',
+            'gpt-4o' => 'OpenAI GPT-4o (Native Functions)',
+            'gpt-4o-mini' => 'OpenAI GPT-4o Mini (Cost Effective)',
             'gemini-2.0-flash-exp' => 'Gemini 2.0 Flash (Native Functions)',
         ];
     }

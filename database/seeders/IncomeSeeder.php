@@ -48,24 +48,27 @@ class IncomeSeeder extends Seeder
     private function createMonthlyIncome(User $user, $categories, $month, $year)
     {
         $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
-        
+        $currentDate = Carbon::now();
+        // If seeding the current month, only allow days up to today
+        $effectiveDays = ($year == $currentDate->year && $month == $currentDate->month) ? $currentDate->day : $daysInMonth;
+
         // 1. Gaji Pokok (Salary) - Usually on 25th or 28th
-        $this->createSalaryIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createSalaryIncome($user, $categories, $month, $year, $effectiveDays);
         
         // 2. Bonus dan Tunjangan (Bonuses & Allowances)
-        $this->createBonusIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createBonusIncome($user, $categories, $month, $year, $effectiveDays);
         
         // 3. Investasi dan Dividen (Investment Returns)
-        $this->createInvestmentIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createInvestmentIncome($user, $categories, $month, $year, $effectiveDays);
         
         // 4. Side Hustle dan Freelance
-        $this->createSideHustleIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createSideHustleIncome($user, $categories, $month, $year, $effectiveDays);
         
         // 5. Refund dan Kompensasi
-        $this->createRefundIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createRefundIncome($user, $categories, $month, $year, $effectiveDays);
         
         // 6. Hadiah dan Hibah
-        $this->createGiftIncome($user, $categories, $month, $year, $daysInMonth);
+        $this->createGiftIncome($user, $categories, $month, $year, $effectiveDays);
     }
 
     private function createSalaryIncome(User $user, $categories, $month, $year, $daysInMonth)
@@ -91,7 +94,7 @@ class IncomeSeeder extends Seeder
         
         // Performance bonus (usually end of month)
         if (rand(1, 3) == 1) { // 33% chance
-            $bonusDay = rand($daysInMonth - 5, $daysInMonth);
+            $bonusDay = $this->pickDay($daysInMonth - 5, $daysInMonth);
             $bonusAmount = rand(500000, 3000000);
             $bonusTypes = [
                 'Bonus Performa Bulanan',
@@ -106,7 +109,7 @@ class IncomeSeeder extends Seeder
         
         // Annual bonus (usually in December or March)
         if (($month == 12 || $month == 3) && rand(1, 2) == 1) {
-            $bonusDay = rand(15, $daysInMonth);
+            $bonusDay = $this->pickDay(15, $daysInMonth);
             $annualBonus = rand(2000000, 8000000);
             
             $this->createTransaction($user, $bonusCategory, 'income', $annualBonus, 'Bonus Tahunan', $year, $month, $bonusDay, '11:00');
@@ -120,7 +123,7 @@ class IncomeSeeder extends Seeder
         
         // Monthly investment returns (random days)
         if (rand(1, 3) == 1) { // 33% chance
-            $investDay = rand(10, $daysInMonth);
+            $investDay = $this->pickDay(10, $daysInMonth);
             $returnAmount = rand(100000, 800000);
             $returnTypes = [
                 'Return Investasi Saham',
@@ -138,7 +141,7 @@ class IncomeSeeder extends Seeder
         
         // Quarterly dividends (March, June, September, December)
         if (in_array($month, [3, 6, 9, 12]) && rand(1, 2) == 1) {
-            $dividendDay = rand(20, $daysInMonth);
+            $dividendDay = $this->pickDay(20, $daysInMonth);
             $dividendAmount = rand(300000, 1200000);
             
             $this->createTransaction($user, $investmentCategory, 'income', $dividendAmount, 'Dividen Kuartalan', $year, $month, $dividendDay, '15:00');
@@ -163,7 +166,7 @@ class IncomeSeeder extends Seeder
         
         // Freelance projects (random throughout month)
         if (rand(1, 4) == 1) { // 25% chance
-            $projectDay = rand(5, $daysInMonth);
+            $projectDay = $this->pickDay(5, $daysInMonth);
             $projectAmount = rand(500000, 3000000);
             $projectTypes = [
                 'Project Freelance Web',
@@ -181,7 +184,7 @@ class IncomeSeeder extends Seeder
         
         // Online business (consistent monthly)
         if (rand(1, 2) == 1) { // 50% chance
-            $businessDay = rand(15, $daysInMonth);
+            $businessDay = $this->pickDay(15, $daysInMonth);
             $businessAmount = rand(200000, 1000000);
             $businessTypes = [
                 'Penjualan Online Shop',
@@ -216,7 +219,7 @@ class IncomeSeeder extends Seeder
         
         // Tax refunds (usually in March-April)
         if (in_array($month, [3, 4]) && rand(1, 3) == 1) {
-            $refundDay = rand(10, $daysInMonth);
+            $refundDay = $this->pickDay(10, $daysInMonth);
             $taxRefund = rand(1000000, 5000000);
             
             $this->createTransaction($user, $refundCategory, 'income', $taxRefund, 'Pajak Refund', $year, $month, $refundDay, '12:00');
@@ -224,7 +227,7 @@ class IncomeSeeder extends Seeder
         
         // Other refunds (random)
         if (rand(1, 5) == 1) { // 20% chance
-            $refundDay = rand(1, $daysInMonth);
+            $refundDay = $this->pickDay(1, $daysInMonth);
             $refundAmount = rand(50000, 500000);
             $refundTypes = [
                 'Refund Belanja Online',
@@ -259,7 +262,7 @@ class IncomeSeeder extends Seeder
         
         // Birthday gifts (random month)
         if (rand(1, 12) == $month) {
-            $giftDay = rand(1, $daysInMonth);
+            $giftDay = $this->pickDay(1, $daysInMonth);
             $giftAmount = rand(100000, 1000000);
             
             $this->createTransaction($user, $giftCategory, 'income', $giftAmount, 'Hadiah Ulang Tahun', $year, $month, $giftDay, '18:00');
@@ -267,7 +270,7 @@ class IncomeSeeder extends Seeder
         
         // Wedding gifts (random)
         if (rand(1, 20) == 1) { // 5% chance
-            $giftDay = rand(1, $daysInMonth);
+            $giftDay = $this->pickDay(1, $daysInMonth);
             $giftAmount = rand(500000, 2000000);
             
             $this->createTransaction($user, $giftCategory, 'income', $giftAmount, 'Hadiah Pernikahan', $year, $month, $giftDay, '19:00');
@@ -275,7 +278,7 @@ class IncomeSeeder extends Seeder
         
         // Other gifts (random)
         if (rand(1, 8) == 1) { // 12.5% chance
-            $giftDay = rand(1, $daysInMonth);
+            $giftDay = $this->pickDay(1, $daysInMonth);
             $giftAmount = rand(50000, 300000);
             $giftTypes = [
                 'Hadiah Natal',
@@ -313,6 +316,13 @@ class IncomeSeeder extends Seeder
             'transaction_date' => date('Y-m-d', mktime(0, 0, 0, $month, $day, $year)),
             'transaction_time' => $time,
         ]);
+    }
+
+    private function pickDay(int $start, int $daysInMonth): int
+    {
+        $start = max(1, $start);
+        $start = min($start, $daysInMonth);
+        return rand($start, $daysInMonth);
     }
 
     private function getRandomNotes(string $description): string

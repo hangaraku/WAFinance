@@ -46,4 +46,21 @@ return [
         'model' => env('GENERATIVE_LANGUAGE_MODEL', 'gemini-2.0-flash'),
     ],
 
+    'messaging' => [
+        // Webhook secret for validating incoming webhook requests (HMAC SHA256)
+        'webhook_secret' => env('MESSAGING_WEBHOOK_SECRET'),
+        // Verification token for webhook setup (e.g., WhatsApp Business API)
+        'verify_token' => env('MESSAGING_VERIFY_TOKEN'),
+    ],
+
+    'openai' => [
+        'api_key' => env('OPEN_AI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-5-nano'),
+    ],
+
+    // AI Provider selection: 'gemini' or 'openai'
+    'ai' => [
+        'provider' => env('AI_PROVIDER', 'openai'),
+    ],
+
 ];

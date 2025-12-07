@@ -20,13 +20,23 @@ class AIChatController extends Controller
     /**
      * Process chat message via API
      * This endpoint can be used by WhatsApp, web, or other integrations
+     * 
+     * Request payload:
+     * {
+     *   "message": "string (required)",
+     *   "user_id": "integer (required)",
+     *   "timezone": "string (optional, e.g. 'Asia/Jakarta', auto-detected from client IP if not provided)",
+     *   "current_time": "ISO 8601 string (optional, e.g. '2025-12-07T14:30:00+07:00', uses server time if not provided)",
+     *   "platform": "string (optional, default: 'web')"
+     * }
      */
     public function chat(Request $request)
     {
         $request->validate([
             'message' => 'required|string|max:1000',
             'user_id' => 'required|exists:users,id',
-            'context' => 'sometimes|array',
+            'timezone' => 'sometimes|string|timezone',
+            'current_time' => 'sometimes|string|date_format:Y-m-d\TH:i:s.uP',
             'platform' => 'sometimes|string|in:web,whatsapp,telegram'
         ]);
 
@@ -35,9 +45,20 @@ class AIChatController extends Controller
         $context = $request->input('context', []);
         $platform = $request->input('platform', 'web');
 
+        // Get timezone from request or auto-detect from IP
+        $timezone = $request->input('timezone') ?: $this->detectTimezoneFromIP($request->ip());
+        
+        // Get current time from request or use server time in detected timezone
+        if ($request->has('current_time')) {
+            $timestamp = $request->input('current_time');
+        } else {
+            $timestamp = now($timezone)->format('Y-m-d\TH:i:s.uP');
+        }
+
         // Add platform context
         $context['platform'] = $platform;
-        $context['timestamp'] = now()->toISOString();
+        $context['timezone'] = $timezone;
+        $context['timestamp'] = $timestamp;
 
         // Process message with AI
         $response = $this->aiService->processMessage($user, $message, $context);
@@ -46,7 +67,8 @@ class AIChatController extends Controller
         $response['metadata'] = [
             'user_id' => $user->id,
             'platform' => $platform,
-            'timestamp' => now()->toISOString(),
+            'timezone' => $timezone,
+            'timestamp' => $timestamp,
             'message_id' => uniqid('msg_', true)
         ];
 
@@ -180,5 +202,20 @@ class AIChatController extends Controller
             'message' => 'WhatsApp webhook endpoint ready for integration',
             'timestamp' => now()->toISOString()
         ]);
+    }
+
+    /**
+     * Detect timezone from client IP address
+     * Note: For best results, the frontend should pass the timezone directly
+     * This is a fallback using the server's configured timezone
+     * 
+     * @param string $ip Client IP address
+     * @return string Timezone identifier (e.g. 'Asia/Jakarta')
+     */
+    protected function detectTimezoneFromIP(string $ip): string
+    {
+        // Fallback to server timezone
+        // For production, consider integrating MaxMind GeoIP2 package for accurate timezone detection
+        return config('app.timezone', 'UTC');
     }
 }

@@ -14,7 +14,7 @@ class TestAIChat extends Command
      *
      * @var string
      */
-    protected $signature = 'ai:test {message} {--user=galih@baikfinansial.com} {--timestamp=}';
+    protected $signature = 'ai:test {message} {--user=galih@baikfinansial.com} {--timestamp=} {--timezone=}';
 
     /**
      * The console command description.
@@ -30,7 +30,8 @@ class TestAIChat extends Command
     {
         $userEmail = $this->option('user');
         $message = $this->argument('message');
-        $timestamp = $this->option('timestamp') ?: Carbon::now()->toISOString();
+        $timezone = $this->option('timezone') ?: config('app.timezone', 'Asia/Jakarta');
+        $timestamp = $this->option('timestamp') ?: Carbon::now($timezone)->format('Y-m-d\TH:i:s.uP');
         
         // Find user
         $user = User::where('email', $userEmail)->first();
@@ -82,6 +83,7 @@ class TestAIChat extends Command
         try {
             $context = [
                 'timestamp' => $timestamp,
+                'timezone' => $timezone,
                 'platform' => 'cli-test'
             ];
             

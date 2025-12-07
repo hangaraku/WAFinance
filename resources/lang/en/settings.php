@@ -22,4 +22,14 @@ return [
     'select_language' => 'Select Language',
     'english' => 'English',
     'indonesian' => 'Bahasa Indonesia',
+    // User account settings
+    'user' => 'Account',
+    'user_description' => 'Manage your account settings',
+    'whatsapp_number' => 'WhatsApp Number',
+    'save' => 'Save',
+    'remove_whatsapp' => 'Remove WhatsApp Number',
+    'connect' => 'Connect',
+    'name' => 'Name',
+    'password' => 'Password',
+    'password_placeholder' => 'Leave blank to keep current password',
 ];

@@ -4,6 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TransactionController;
 
+// Health check endpoint for Docker/load balancers
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toISOString(),
+    ]);
+});
+
 // Public routes
 Route::get('/', function () {
     return view('welcome');
@@ -73,6 +81,10 @@ Route::middleware('auth')->group(function () {
     
     // Settings routes
     Route::get('/settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+    Route::get('/settings/account', [App\Http\Controllers\SettingsController::class, 'account'])->name('settings.account');
+    Route::post('/settings/account', [App\Http\Controllers\SettingsController::class, 'updateAccount'])->name('settings.account.update');
+    Route::post('/settings/whatsapp', [App\Http\Controllers\SettingsController::class, 'updateWhatsApp'])->name('settings.whatsapp.update');
+    Route::delete('/settings/whatsapp', [App\Http\Controllers\SettingsController::class, 'removeWhatsApp'])->name('settings.whatsapp.remove');
     
     // AI routes
     Route::get('/ai/chat', [App\Http\Controllers\AIController::class, 'chat'])->name('ai.chat');

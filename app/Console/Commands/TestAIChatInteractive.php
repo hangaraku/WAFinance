@@ -11,7 +11,8 @@ class TestAIChatInteractive extends Command
 {
     protected $signature = 'ai:chat 
                           {--user=galih@baikfinansial.com : User email}
-                          {--clear : Clear conversation history}';
+                          {--clear : Clear conversation history}
+                          {--timezone= : User timezone}';
 
     protected $description = 'Interactive AI chat test';
 
@@ -40,6 +41,7 @@ class TestAIChatInteractive extends Command
         $this->line(str_repeat('=', 60));
         $this->newLine();
 
+        $timezone = $this->option('timezone') ?: config('app.timezone', 'Asia/Jakarta');
         $aiService = app(AIService::class);
 
         while (true) {
@@ -71,7 +73,8 @@ class TestAIChatInteractive extends Command
 
             try {
                 $response = $aiService->processMessage($user, $message, [
-                    'timestamp' => now()->toISOString()
+                    'timestamp' => now($timezone)->format('Y-m-d\TH:i:s.uP'),
+                    'timezone' => $timezone
                 ]);
 
                 if ($response['error']) {

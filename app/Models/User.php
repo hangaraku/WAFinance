@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'whatsapp_number',
         'google_id',
         'avatar',
         'is_phone_verified',
@@ -97,5 +98,13 @@ class User extends Authenticatable
     public function activeAccounts(): HasMany
     {
         return $this->hasMany(Account::class)->where('is_active', true);
+    }
+
+    /**
+     * Get the messages for the user.
+     */
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
     }
 }

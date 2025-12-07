@@ -54,6 +54,24 @@
                 </svg>
             </a>
 
+            <!-- User Account (Akun) -->
+            <a href="{{ route('settings.account') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.761 0 5.303.822 7.879 2.271M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-900">{{ __('settings.user') }}</h3>
+                        <p class="text-xs text-gray-500">{{ __('settings.user_description') }}</p>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+
             <!-- Accounts -->
             <a href="{{ route('accounts.index') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
                 <div class="flex items-center space-x-3">

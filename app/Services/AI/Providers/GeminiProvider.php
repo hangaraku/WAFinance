@@ -104,23 +104,60 @@ class GeminiProvider implements AIProviderInterface
                 ];
             }
 
+            // Handle multiple function calls (parallel function calling)
+            if (isset($msg['function_calls'])) {
+                foreach ($msg['function_calls'] as $functionCall) {
+                    $args = json_decode($functionCall['arguments'], true);
+                    // Ensure args is an object (associative array), not a list
+                    if (is_array($args) && empty($args)) {
+                        $args = new \stdClass(); // Empty object
+                    }
+                    
+                    $parts[] = [
+                        'functionCall' => [
+                            'name' => $functionCall['name'],
+                            'args' => $args
+                        ]
+                    ];
+                }
+            }
+
             // Handle function responses in history (function role)
             if ($msg['role'] === 'function') {
                 $role = 'function'; // Gemini uses 'function' role for responses
-                $parts = [
-                    [
-                        'functionResponse' => [
-                            'name' => $msg['name'],
-                            'response' => ['content' => $msg['content']] 
+                
+                // Check if this is a parallel function response (multiple responses)
+                if (isset($msg['function_responses'])) {
+                    // Multiple function responses in one message
+                    $parts = [];
+                    foreach ($msg['function_responses'] as $funcResp) {
+                        $parts[] = [
+                            'functionResponse' => [
+                                'name' => $funcResp['name'],
+                                'response' => ['content' => $funcResp['content']]
+                            ]
+                        ];
+                    }
+                } else {
+                    // Single function response
+                    $parts = [
+                        [
+                            'functionResponse' => [
+                                'name' => $msg['name'],
+                                'response' => ['content' => $msg['content']] 
+                            ]
                         ]
-                    ]
-                ];
+                    ];
+                }
             }
 
-            $formatted[] = [
-                'role' => $role,
-                'parts' => $parts
-            ];
+            // Only add message if it has parts
+            if (!empty($parts)) {
+                $formatted[] = [
+                    'role' => $role,
+                    'parts' => $parts
+                ];
+            }
         }
 
         return $formatted;

@@ -200,6 +200,29 @@ class FunctionRouter
                 ]
             ],
             [
+                'name' => 'add_category',
+                'description' => 'Create a new transaction category for the user. Use when user wants to add a new category.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'name' => [
+                            'type' => 'string',
+                            'description' => 'Category name (e.g., "Gym", "Entertainment", "Medical")'
+                        ],
+                        'type' => [
+                            'type' => 'string',
+                            'enum' => ['income', 'expense'],
+                            'description' => 'Category type - "income" for earnings, "expense" for spending'
+                        ],
+                        'color' => [
+                            'type' => 'string',
+                            'description' => 'Optional: Hex color code for the category (e.g., "#FF6B35"). If not provided, a default color will be assigned.'
+                        ]
+                    ],
+                    'required' => ['name', 'type']
+                ]
+            ],
+            [
                 'name' => 'get_budgets',
                 'description' => 'Get user\'s budgets and their progress. Use when user asks about budget status, spending limits, or overspending.',
                 'parameters' => [
@@ -346,6 +369,9 @@ class FunctionRouter
                 
                 case 'get_categories':
                     return $this->getCategories($user, $args['type'] ?? null);
+                
+                case 'add_category':
+                    return $this->addCategory($user, $args);
                 
                 case 'get_budgets':
                     return $this->getBudgets($user, $args['month'] ?? null, $args['year'] ?? null);
@@ -656,6 +682,74 @@ class FunctionRouter
                 'color' => $category->color,
             ];
         })->toArray();
+    }
+
+    private function addCategory(User $user, array $args): array
+    {
+        try {
+            // Validate required fields
+            if (empty($args['name']) || empty($args['type'])) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Category name and type are required'
+                ];
+            }
+
+            // Check if category with same name already exists
+            $existing = Category::where('user_id', $user->id)
+                ->where('name', $args['name'])
+                ->where('type', $args['type'])
+                ->first();
+
+            if ($existing) {
+                return [
+                    'status' => 'error',
+                    'message' => "Kategori '{$args['name']}' sudah ada"
+                ];
+            }
+
+            // Default colors for categories if not provided
+            $defaultColors = [
+                'expense' => '#6B7280',
+                'income' => '#10B981'
+            ];
+
+            $category = new Category();
+            $category->user_id = $user->id;
+            $category->name = $args['name'];
+            $category->type = $args['type'];
+            $category->color = $args['color'] ?? $defaultColors[$args['type']] ?? '#6B7280';
+            $category->save();
+
+            Log::info("Category created", [
+                'user_id' => $user->id,
+                'category_id' => $category->id,
+                'name' => $category->name,
+                'type' => $category->type
+            ]);
+
+            return [
+                'status' => 'success',
+                'message' => "Kategori '{$category->name}' berhasil dibuat",
+                'category' => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'type' => $category->type,
+                    'color' => $category->color
+                ]
+            ];
+
+        } catch (\Exception $e) {
+            Log::error("Failed to create category", [
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'status' => 'error',
+                'message' => 'Gagal membuat kategori baru'
+            ];
+        }
     }
 
     private function getBudgets(User $user, ?int $month = null, ?int $year = null): array

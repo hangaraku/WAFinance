@@ -14,7 +14,7 @@ class TestCompositionalCalling extends Command
      *
      * @var string
      */
-    protected $signature = 'ai:test-compositional {--user=galih@baikfinansial.com}';
+    protected $signature = 'ai:test-compositional {--user=galih@baikfinansial.com} {--timezone=}';
 
     /**
      * The console command description.
@@ -38,7 +38,8 @@ class TestCompositionalCalling extends Command
             return 1;
         }
         
-        $timestamp = Carbon::now()->toISOString();
+        $timezone = $this->option('timezone') ?: config('app.timezone', 'Asia/Jakarta');
+        $timestamp = Carbon::now($timezone)->format('Y-m-d\TH:i:s.uP');
         
         $this->info("╔══════════════════════════════════════════════════════════════════════════════╗");
         $this->info("║  COMPOSITIONAL & PARALLEL FUNCTION CALLING TEST SUITE                        ║");
@@ -89,6 +90,7 @@ class TestCompositionalCalling extends Command
             try {
                 $context = [
                     'timestamp' => $timestamp,
+                    'timezone' => $timezone,
                     'platform' => 'cli-test-compositional'
                 ];
                 
