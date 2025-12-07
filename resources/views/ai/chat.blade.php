@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+/* WhatsApp-friendly message formatting */
+.ai-message {
+    line-height: 1.6;
+}
+.ai-message br {
+    display: block;
+    content: "";
+    margin: 0.5em 0;
+}
+</style>
+
 <div class="fixed inset-0 top-12 bottom-16 bg-gray-50 flex flex-col">
     <!-- Header -->
     <div class="bg-white border-b border-gray-200">
@@ -132,6 +144,31 @@
 <script>
 let isTyping = false;
 
+// Sanitize AI messages: remove 'Assistant:' labels and markdown asterisks/bullets
+function sanitizeMessage(message) {
+    if (typeof message !== 'string') return message;
+
+    // Remove any leading 'Assistant:' labels (case-insensitive)
+    message = message.replace(/\bAssistant:\s*/gi, '');
+
+    // Replace bold markdown **text** with plain text
+    message = message.replace(/\*\*(.*?)\*\*/g, '$1');
+
+    // Replace list markers at start of lines like '* ' with '• '
+    message = message.replace(/^\s*\*\s+/gm, '• ');
+
+    // Remove remaining standalone asterisks used for emphasis
+    message = message.replace(/\*(?=\S)|(?<=\S)\*/g, '');
+
+    // Escape HTML tags to prevent XSS
+    message = message.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Convert newlines to <br> for proper line breaks
+    message = message.replace(/\n/g, '<br>');
+
+    return message.trim();
+}
+
 // Auto-resize textarea
 const messageInput = document.getElementById('message-input');
 messageInput.addEventListener('input', function() {
@@ -200,43 +237,94 @@ function sendMessage(message) {
 
 // Add message to chat
 function addMessage(message, sender, action = null) {
+    // sanitize message to remove markdown asterisks and assistant labels
+    const safeMessage = sanitizeMessage(message);
+
     const messagesContainer = document.getElementById('chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `flex items-start space-x-3 ${sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`;
-    
+    // Build message elements using DOM APIs to avoid injecting inline handlers
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = `flex items-start space-x-3 ${sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`;
+
     const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    
+
     if (sender === 'user') {
-        messageDiv.innerHTML = `
-            <div class="flex-1 max-w-xs ml-auto">
-                <div class="bg-blue-500 text-white rounded-2xl rounded-tr-sm p-4 ml-auto">
-                    <p class="text-sm">${message}</p>
-                </div>
-                <div class="text-xs text-gray-500 mt-1 text-right">${time}</div>
-            </div>
-        `;
+        const outer = document.createElement('div');
+        outer.className = 'flex-1 max-w-xs ml-auto';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-blue-500 text-white rounded-2xl rounded-tr-sm p-4 ml-auto';
+
+        const p = document.createElement('p');
+        p.className = 'text-sm whitespace-pre-wrap';
+        p.innerHTML = safeMessage;
+
+        bubble.appendChild(p);
+        outer.appendChild(bubble);
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'text-xs text-gray-500 mt-1 text-right';
+        timeDiv.textContent = time;
+        outer.appendChild(timeDiv);
+
+        messageWrapper.appendChild(outer);
     } else {
-        messageDiv.innerHTML = `
-            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                </svg>
-            </div>
-            <div class="flex-1">
-                <div class="bg-gray-100 rounded-2xl rounded-tl-sm p-4">
-                    <p class="text-sm text-gray-900">${message}</p>
-                    ${action ? `<div class="mt-3">
-                        <button onclick="showActionModal('${action.type}', '${action.data}')" class="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full hover:bg-blue-600 transition-colors">
-                            ${action.label}
-                        </button>
-                    </div>` : ''}
-                </div>
-                <div class="text-xs text-gray-500 mt-1 ml-4">${time}</div>
-            </div>
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0';
+        avatarDiv.innerHTML = `
+            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
         `;
+
+        const flex1 = document.createElement('div');
+        flex1.className = 'flex-1';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-gray-100 rounded-2xl rounded-tl-sm p-4';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'text-sm text-gray-900 ai-message';
+        contentDiv.innerHTML = safeMessage;
+
+        bubble.appendChild(contentDiv);
+
+        if (action) {
+            const actionContainer = document.createElement('div');
+            actionContainer.className = 'mt-3';
+
+            const btn = document.createElement('button');
+            btn.className = 'text-xs bg-blue-500 text-white px-3 py-1.5 rounded-full hover:bg-blue-600 transition-colors';
+            btn.textContent = action.label || '{{ __('ai.execute') }}';
+
+            // Safely parse action.data if it's a JSON string
+            btn.addEventListener('click', function() {
+                let dataObj = action.data;
+                try {
+                    if (typeof action.data === 'string') {
+                        dataObj = JSON.parse(action.data);
+                    }
+                } catch (e) {
+                    dataObj = action.data;
+                }
+                showActionModal(action.type, dataObj);
+            });
+
+            actionContainer.appendChild(btn);
+            bubble.appendChild(actionContainer);
+        }
+
+        flex1.appendChild(bubble);
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'text-xs text-gray-500 mt-1 ml-4';
+        timeDiv.textContent = time;
+        flex1.appendChild(timeDiv);
+
+        messageWrapper.appendChild(avatarDiv);
+        messageWrapper.appendChild(flex1);
     }
-    
-    messagesContainer.appendChild(messageDiv);
+
+    messagesContainer.appendChild(messageWrapper);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 

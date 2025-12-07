@@ -39,4 +39,11 @@ return [
         'api_key' => env('OPENROUTER_API_KEY'),
     ],
 
+    'google' => [
+        // Google Generative Language API key (do NOT commit real keys)
+        'generative_api_key' => env('GENERATIVE_LANGUAGE_API_KEY'),
+        // Optional model name for the Generative API. Example: 'gemini-2.0-flash' or 'gemini-2.1'
+        'model' => env('GENERATIVE_LANGUAGE_MODEL', 'gemini-2.0-flash'),
+    ],
+
 ];
