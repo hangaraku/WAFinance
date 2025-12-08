@@ -26,7 +26,6 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'string', 'min:8'],
             'whatsapp_number' => [
                 'nullable',
                 'string',
@@ -36,10 +35,6 @@ class SettingsController extends Controller
         ]);
 
         $update = ['name' => $validated['name']];
-
-        if (!empty($validated['password'])) {
-            $update['password'] = Hash::make($validated['password']);
-        }
 
         if (!empty($validated['whatsapp_number'])) {
             $update['whatsapp_number'] = $this->normalizePhoneNumber($validated['whatsapp_number']);

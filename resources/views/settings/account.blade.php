@@ -19,14 +19,6 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">{{ __('settings.password') ?? 'Password' }}</label>
-                <input type="password" name="password" class="mt-1 block w-full border-gray-200 rounded-lg shadow-sm" placeholder="{{ __('settings.password_placeholder') ?? 'Leave blank to keep current password' }}" />
-                @error('password')
-                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">{{ __('settings.whatsapp_number') ?? 'WhatsApp Number' }}</label>
                 <input type="text" name="whatsapp_number" value="{{ old('whatsapp_number', $user->whatsapp_number) }}" class="mt-1 block w-full border-gray-200 rounded-lg shadow-sm" placeholder="+6281234567890" />
                 @error('whatsapp_number')
